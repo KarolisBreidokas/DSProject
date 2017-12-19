@@ -21,6 +21,9 @@ public class StringComparer implements MultiLevelComparator<String> {
 
 	@Override
 	public int compareBykey(int index, String obj1, String obj2) {
+		if(obj1.length()<=index||obj2.length()<=index) {
+			return obj2.length()-obj1.length();
+		}
 		return obj2.charAt(index)-obj1.charAt(index);
 	}
 	

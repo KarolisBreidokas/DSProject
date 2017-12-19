@@ -104,7 +104,7 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 				n = n.next[levelCount - level - 1];
 			}
 			if (cmp > 0) {
-				return null;
+				return n.value;
 			}
 		}
 		return n.value;

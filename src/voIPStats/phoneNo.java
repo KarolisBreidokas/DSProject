@@ -1,6 +1,6 @@
 package voIPStats;
 
-public class phoneNo {
+public class phoneNo implements Comparable<phoneNo>{
 	public String PhoneNo;
 	public String Region;
 	
@@ -10,6 +10,11 @@ public class phoneNo {
 	}
 	@Override
 	public String toString() {
-		return PhoneNo;
+		return PhoneNo+":"+Region;
 	}
+	@Override
+	public int compareTo(phoneNo o) {
+		return PhoneNo.compareTo(o.PhoneNo);
+	}
+	
 }

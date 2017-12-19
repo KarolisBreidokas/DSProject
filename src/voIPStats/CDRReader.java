@@ -67,8 +67,8 @@ public class CDRReader {
 
 	static CDRLog generateLog(Matcher match) {
 
-		String calleeId = null;
-		String callerId = null;
+		phoneNo calleeId = null;
+		phoneNo callerId = null;
 		LocalDateTime callStart = null;
 		LocalDateTime callEnd = null;
 		Duration callDuration = null;
@@ -77,10 +77,10 @@ public class CDRReader {
 		for (int a = 1; a < paramCount + 1; a++) {
 			switch (params[a - 1]) {
 			case SourceNumber:
-				calleeId = match.group(a);
+				calleeId = new phoneNo(match.group(a), PhoneDecoder.GetRegion(match.group(a))) ;
 				break;
 			case DestinationNumber:
-				callerId = match.group(a);
+				callerId = new phoneNo(match.group(a), PhoneDecoder.GetRegion(match.group(a))) ;
 				break;
 			case CallStart:
 				callStart = LocalDateTime.parse(match.group(a));
@@ -136,7 +136,8 @@ public class CDRReader {
 	public static void main(String[] args) throws Exception {
 		CustomSkipList<LogKey, CDRLog> list = getList("log.txt");
 		System.out.println(list);
-		Client[] clients = { new Client("John", "+37055550101"), new Client("Smith", "+37055550100") };
+		Client[] clients = { new Client("John", new phoneNo("+37055550101", null)),
+				new Client("Smith", new phoneNo("+37055550100", null)) };
 		for (Client client : clients) {
 			CustomSkipList<LogKey, CDRLog> l1 = list.SelectBySpecificComparator(0,
 					new LogKey(null, client.Number, null), new LogComparator() {

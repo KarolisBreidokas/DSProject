@@ -2,8 +2,8 @@ package voIPStats;
 
 public class Client{
 	String name;
-	String Number;
-	public Client(String name, String number) {
+	phoneNo Number;
+	public Client(String name, phoneNo number) {
 		this.name = name;
 		Number = number;
 	}

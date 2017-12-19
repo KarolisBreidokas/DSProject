@@ -12,18 +12,18 @@ public class CDRLog {
 				+ callEnd + ", callDuration=" + callDuration + ", callSucess=" + callSucess + "]";
 	}
 
-	private String calleeId = null;
-	private String callerId = null;
+	private phoneNo calleeId = null;
+	private phoneNo callerId = null;
 	private LocalDateTime callStart = null;
 	private LocalDateTime callEnd = null;
 	private Duration callDuration = null;
 	private boolean callSucess = false;
 
-	public String getCalleeId() {
+	public phoneNo getCalleeId() {
 		return calleeId;
 	}
 
-	public String getCallerId() {
+	public phoneNo getCallerId() {
 		return callerId;
 	}
 
@@ -47,7 +47,7 @@ public class CDRLog {
 
 	}
 
-	public CDRLog(String calleeId, String callerId, LocalDateTime callStart, LocalDateTime callEnd,
+	public CDRLog(phoneNo calleeId, phoneNo callerId, LocalDateTime callStart, LocalDateTime callEnd,
 			Duration callDuration, boolean callSucess) {
 		this.calleeId = calleeId;
 		this.callerId = callerId;
@@ -67,11 +67,11 @@ public class CDRLog {
 			return "LogKey [calleeId=" + calleeId + ", callerId=" + callerId + ", callStart=" + callStart + "]";
 		}
 
-		public String getCalleeId() {
+		public phoneNo getCalleeId() {
 			return calleeId;
 		}
 
-		public String getCallerId() {
+		public phoneNo getCallerId() {
 			return callerId;
 		}
 
@@ -79,11 +79,11 @@ public class CDRLog {
 			return callStart;
 		}
 
-		private String calleeId = null;
-		private String callerId = null;
+		private phoneNo calleeId = null;
+		private phoneNo callerId = null;
 		private LocalDateTime callStart = null;
 
-		public LogKey(String calleeId, String callerId, LocalDateTime callStart) {
+		public LogKey(phoneNo calleeId, phoneNo callerId, LocalDateTime callStart) {
 			this.calleeId = calleeId;
 			this.callerId = callerId;
 			this.callStart = callStart;
