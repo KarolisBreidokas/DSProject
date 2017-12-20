@@ -7,5 +7,8 @@ public class Client{
 		this.name = name;
 		Number = number;
 	}
-	
+	@Override
+	public String toString() {
+		return name+":"+Number.PhoneNo;
+	}
 }

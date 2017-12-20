@@ -16,7 +16,9 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 	public boolean isEmpty() {
 		return size == 0;
 	}
-
+	public int getSize() {
+		return size;
+	}
 	public CustomSkipList(MultiLevelComparator<K> cmpr) {
 		c = cmpr;
 		levelCount = c.comparasonCount();

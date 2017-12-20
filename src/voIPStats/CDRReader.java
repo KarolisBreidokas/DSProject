@@ -114,7 +114,7 @@ public class CDRReader {
 		// throw new Exception("Pattern does not match log");
 	}
 
-	static CustomSkipList<LogKey, CDRLog> getList(String filePath) {
+	public static CustomSkipList<LogKey, CDRLog> getList(String filePath) {
 		if (Pttrn == null) {
 			CreateRegexPattern();
 		}

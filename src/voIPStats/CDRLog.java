@@ -19,6 +19,25 @@ public class CDRLog {
 	private Duration callDuration = null;
 	private boolean callSucess = false;
 
+	public static String[] TableHeader = { "Skambintojo nr.", "Skambinančiojo nr.", "Skambučio pradžia",
+			"Skambučio ilgis", "Skambutis Nusisękęs?" };
+	public String GetSpecificParam(int i) {
+		switch(i) {
+		case 0:
+			return callerId.PhoneNo.toString();
+		case 1:
+			return calleeId.PhoneNo.toString();
+		case 2:
+			return callStart.toString();
+		case 3:
+			return callDuration.toString();
+		case 4:
+			return callSucess?"True":"false";
+		}
+		return "";
+	}
+	
+	
 	public phoneNo getCalleeId() {
 		return calleeId;
 	}
