@@ -1,5 +1,6 @@
 package voIPStats;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 public class CustomSkipList<K, V> implements Iterable<V> {
@@ -123,7 +124,41 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 	public Iterator<V> iterator() {
 		return new iterator();
 	}
+	public ArrayList<SkipListSubList> GroupByPrimaryComparer() {
+		ArrayList<SkipListSubList> t=new ArrayList<SkipListSubList>();
+		int n=0;
+		for(node<K, V> d=start;d!=null;d=d.next[d.next.length-1]) {
+			t.add(new SkipListSubList(d));
+		}
+		t.trimToSize();
+		return t;
+	}
 
+	public class SkipListSubList implements Iterable<V>{
+
+		private node<K,V> root;
+		
+		public V GetRootValue() {
+			return root.value;
+		}
+		
+		@Override
+		public Iterator<V> iterator() {
+			return new iterator(root, root.next[root.next.length-1]);
+		}
+		private SkipListSubList(node<K,V> root) {
+			this.root=root;
+		}
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			for (node<K, V> n = root; n != root.next[root.next.length-1]; n = n.next[0]) {
+				builder.append(n.toString() + "\r\n");
+			}
+			return builder.toString();
+		}
+	}
+	
 	protected class node<K, V> {
 		K key;
 		V value;
@@ -150,14 +185,19 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 	private class iterator implements Iterator<V> {
 
 		node<K, V> D;
+		node<K,V> end;
 
 		public iterator() {
 			D = start;
 		}
+		public iterator(node<K,V> start,node<K,V> end) {
+			this.D=start;
+			this.end=end;
+		}
 
 		@Override
 		public boolean hasNext() {
-			return D != null;
+			return D != end;
 		}
 
 		@Override
@@ -166,6 +206,5 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 			D = D.next[0];
 			return val;
 		}
-
 	}
 }

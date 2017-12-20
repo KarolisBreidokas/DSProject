@@ -77,10 +77,10 @@ public class CDRReader {
 		for (int a = 1; a < paramCount + 1; a++) {
 			switch (params[a - 1]) {
 			case SourceNumber:
-				calleeId = new phoneNo(match.group(a), PhoneDecoder.GetRegion(match.group(a))) ;
+				callerId = new phoneNo(match.group(a), PhoneDecoder.GetRegion(match.group(a)));
 				break;
 			case DestinationNumber:
-				callerId = new phoneNo(match.group(a), PhoneDecoder.GetRegion(match.group(a))) ;
+				calleeId = new phoneNo(match.group(a), PhoneDecoder.GetRegion(match.group(a)));
 				break;
 			case CallStart:
 				callStart = LocalDateTime.parse(match.group(a));
@@ -136,18 +136,22 @@ public class CDRReader {
 	public static void main(String[] args) throws Exception {
 		CustomSkipList<LogKey, CDRLog> list = getList("log.txt");
 		System.out.println(list);
-		Client[] clients = { new Client("John", new phoneNo("+37055550101", null)),
+		Client[] clients = { new Client("John", new phoneNo("+37055550110", null)),
 				new Client("Smith", new phoneNo("+37055550100", null)) };
 		for (Client client : clients) {
 			CustomSkipList<LogKey, CDRLog> l1 = list.SelectBySpecificComparator(0,
 					new LogKey(null, client.Number, null), new LogComparator() {
 						{
-							t = new CDRLog.KeyComparare[] { (x, y) -> x.getCalleeId().compareTo(y.getCalleeId()),
+							t = new CDRLog.KeyComparare[] {
+									(x, y) -> x.getCalleeId().Region.compareTo(y.getCalleeId().Region),
 									(x, y) -> x.getCallStart().compareTo(y.getCallStart()) };
 						}
 					});
 			System.out.println(client.name);
-			System.out.println(l1);
+			for (CustomSkipList<LogKey, CDRLog>.SkipListSubList t : l1.GroupByPrimaryComparer()) {
+				System.out.println(t.GetRootValue().getCalleeId().Region);
+				System.out.println(t);
+			}
 		}
 
 	}
