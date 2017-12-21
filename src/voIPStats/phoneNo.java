@@ -10,7 +10,7 @@ public class phoneNo implements Comparable<phoneNo>{
 	}
 	@Override
 	public String toString() {
-		return PhoneNo+":"+Region;
+		return PhoneNo+" ("+Region+")";
 	}
 	@Override
 	public int compareTo(phoneNo o) {

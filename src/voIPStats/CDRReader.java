@@ -150,7 +150,7 @@ public class CDRReader {
 			System.out.println(client.name);
 			for (CustomSkipList<LogKey, CDRLog>.SkipListSubList t : l1.GroupByPrimaryComparer()) {
 				System.out.println(t.GetRootValue().getCalleeId().Region);
-				System.out.println(t);
+				System.out.println(t.toSkipList());
 			}
 		}
 

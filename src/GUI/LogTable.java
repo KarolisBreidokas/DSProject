@@ -11,21 +11,24 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import voIPStats.CDRLog;
 
-public class LogTable extends TableView<CDRLog> {
+public abstract class LogTable<S> extends TableView<S> {
 	public LogTable() {
 		super();
 		setPlaceholder(new Label(""));
 	}
-
-	public void formTable(int numberOfColumns, int colWidth) {
+	void toggleTalbe(boolean toogle) {
+		setManaged(toogle);
+		setVisible(toogle);
+	}
+	public void formTable(String[] HeaderRow) {
 		getColumns().clear();
-		setColumnResizePolicy(x->true);
-		for (int i = 0; i < numberOfColumns; i++) {
-			String columnTitle = CDRLog.TableHeader[i];
-			TableColumn<CDRLog, String> col = new TableColumn<>(columnTitle);
+		//setColumnResizePolicy(x -> true);
+		for (int i = 0; i < HeaderRow.length; i++) {
+			String columnTitle = HeaderRow[i];
+			TableColumn<S, String> col = new TableColumn<>(columnTitle);
 			col.setSortable(false);
-			final boolean toAlign = (i == 0 || i % 2 != 0);
-			col.setCellFactory(p -> new TableCell<CDRLog, String>() {
+			col.setPrefWidth(HeaderRow[i].length()*12);
+			col.setCellFactory(p -> new TableCell<S, String>() {
 				@Override
 				protected void updateItem(String item, boolean empty) {
 					super.updateItem(item, empty);
@@ -37,12 +40,7 @@ public class LogTable extends TableView<CDRLog> {
 					} else {
 						setText(item.toString());
 						setTooltip(new Tooltip(item.toString()));
-						setAlignment(toAlign ? Pos.CENTER : Pos.CENTER_LEFT);
-						if (!"-->".equals(item.toString())) {
-							setStyle(PanelsFX.TABLE_CELL_STYLE_FILLED);
-						} else {
-							setStyle(PanelsFX.TABLE_CELL_STYLE_EMPTY);
-						}
+						setAlignment(Pos.CENTER);
 					}
 				}
 			});
@@ -51,10 +49,7 @@ public class LogTable extends TableView<CDRLog> {
 			getColumns().add(col);
 		}
 		getColumns().add(new TableColumn<>());
-		
 	}
-	public ObservableValue<String> returnValue(TableColumn.CellDataFeatures<CDRLog, String> p) {
-		int index = Integer.valueOf(p.getTableColumn().getId());
-		return new SimpleStringProperty(p.getValue().GetSpecificParam(index));
-	}
+
+	public abstract ObservableValue<String> returnValue(TableColumn.CellDataFeatures<S, String> p);
 }

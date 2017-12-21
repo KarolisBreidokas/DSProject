@@ -24,9 +24,9 @@ public class CDRLog {
 	public String GetSpecificParam(int i) {
 		switch(i) {
 		case 0:
-			return callerId.PhoneNo.toString();
+			return callerId.toString();
 		case 1:
-			return calleeId.PhoneNo.toString();
+			return calleeId.toString();
 		case 2:
 			return callStart.toString();
 		case 3:
@@ -112,11 +112,11 @@ public class CDRLog {
 	public static class LogComparator extends customComparer {
 		public LogComparator() {
 			t = new KeyComparare[] { (x, y) -> x.callerId.compareTo(y.callerId),
-					(x, y) -> x.calleeId.compareTo(y.calleeId), (x, y) -> x.callStart.compareTo(y.callStart) };
+					(x, y) -> x.calleeId.Region.compareTo(y.calleeId.Region), (x, y) -> x.callStart.compareTo(y.callStart) };
 		}
 	}
 
-	abstract static class customComparer implements MultiLevelComparator<LogKey> {
+	public abstract static class customComparer implements MultiLevelComparator<LogKey> {
 		public KeyComparare[] t;
 
 		@Override

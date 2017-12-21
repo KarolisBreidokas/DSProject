@@ -1,6 +1,8 @@
 package GUI;
 
 import java.io.Console;
+import java.nio.channels.SelectionKey;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Observable;
@@ -40,10 +42,14 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import voIPStats.CDRLog;
+import voIPStats.CDRLog.KeyComparare;
 import voIPStats.CDRLog.LogKey;
 import voIPStats.CDRReader;
 import voIPStats.Client;
 import voIPStats.CustomSkipList;
+import voIPStats.MultiLevelComparator;
+import voIPStats.RegionStats;
+import voIPStats.CustomSkipList.SkipListSubList;
 import voIPStats.phoneNo;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -68,18 +74,41 @@ public class MainWindow extends BorderPane implements EventHandler<ActionEvent> 
 	private Object[] clients = { "Visi", new Client("John", new phoneNo("+37055550110", null)),
 			new Client("Smith", new phoneNo("+37055550100", null)) };
 	CustomSkipList<CDRLog.LogKey, CDRLog> allLogs = CDRReader.getList("log.txt");
-	private LogTable table;
+	CustomSkipList<CDRLog.LogKey, CDRLog> viewLog;
 
+	private LogTable Logtable;
+	private LogTable StatTable;
 	public MainWindow(Stage stage) {
 		this.stage = stage;
 		initComponents();
 	}
 
 	private void initComponents() {
-		table = new LogTable();
+		Logtable = new LogTable<CDRLog>() {
+			@Override
+			public ObservableValue<String> returnValue(CellDataFeatures<CDRLog, String> p) {
+				int index = Integer.valueOf(p.getTableColumn().getId());
+				return new SimpleStringProperty(p.getValue().GetSpecificParam(index));
+			}
+		};
+		StatTable=new LogTable<RegionStats>() {
 
+			@Override
+			public ObservableValue<String> returnValue(CellDataFeatures<RegionStats, String> p) {
+					int index = Integer.valueOf(p.getTableColumn().getId());
+					return new SimpleStringProperty(p.getValue().GetSpecificParam(index));
+			}
+			
+		};
+		viewLog = allLogs;
+		showList();
+		Button GetStatistics = new Button(MESSAGES.getString("Stats"));
+		GetStatistics.setStyle(PanelsFX.BTN_STYLE);
+		GridPane.setHgrow(GetStatistics, Priority.ALWAYS);
+		GetStatistics.setMaxWidth(Double.MAX_VALUE);
+		GetStatistics.setOnAction(this);
 		Stream.of(new Label(MESSAGES.getString("Select_Users")), CbUsers,
-				new Label(MESSAGES.getString("Select_Groups")), CbGroupingTypes)
+				new Label(MESSAGES.getString("Select_Groups")), CbGroupingTypes, GetStatistics)
 				.forEach(n -> paneSelect.addColumn(0, n));
 		CbUsers.setItems(FXCollections.observableArrayList(clients));
 		CbUsers.getSelectionModel().select(0);
@@ -87,6 +116,7 @@ public class MainWindow extends BorderPane implements EventHandler<ActionEvent> 
 		CbUsers.setOnAction(this);
 		CbGroupingTypes.setPrefWidth(TF_WIDTH);
 		CbGroupingTypes.setOnAction(this);
+		CbGroupingTypes.setDisable(true);
 
 		menu = new MenuFX() {
 			@Override
@@ -114,14 +144,18 @@ public class MainWindow extends BorderPane implements EventHandler<ActionEvent> 
 		};
 		VBox vboxTable = new VBox();
 		vboxTable.setPadding(INSETS_SMALLER);
-		VBox.setVgrow(table, Priority.ALWAYS);
-		vboxTable.getChildren().addAll(new Label(MESSAGES.getString("TableName")), table);
+		VBox.setVgrow(Logtable, Priority.ALWAYS);
+		VBox.setVgrow(StatTable, Priority.ALWAYS);
+		StatTable.toggleTalbe(false);
+		vboxTable.getChildren().addAll(new Label(MESSAGES.getString("TableName")),Logtable,StatTable );
 		setRight(paneSelect);
 		setCenter(vboxTable);
-		//setBottom(paneParam123Events);
-		showList();
+		// setBottom(paneParam123Events);
 	}
-
+	void toggleTalbe(LogTable table,boolean toogle) {
+		table.setManaged(toogle);
+		table.setVisible(toogle);
+	}
 	public static void init(Stage stage) {
 		Platform.runLater(() -> {
 			Locale.setDefault(Locale.US); // Suvienodiname skaičių formatus
@@ -138,20 +172,25 @@ public class MainWindow extends BorderPane implements EventHandler<ActionEvent> 
 	}
 
 	void showList() {
-		CDRLog[] modelList = CreateViewable(allLogs);
-		table.formTable(CDRLog.TableHeader.length, 180);
-		table.getItems().clear();
-		table.setItems(FXCollections.observableArrayList(modelList));
-		table.refresh();
+		Object[] modelList = CreateViewable(viewLog);
+		
+		Logtable.formTable(CDRLog.TableHeader);
+		Logtable.getItems().clear();
+		Logtable.setItems(FXCollections.observableArrayList(modelList));
+		Logtable.toggleTalbe(true);
+		StatTable.toggleTalbe(false);
+		StatTable.refresh();
+		Logtable.refresh();
 	}
 
-	private CDRLog[] CreateViewable(CustomSkipList<LogKey, CDRLog> allLogs2) {
-		CDRLog[] ans = new CDRLog[allLogs2.getSize()];
+	private Object[] CreateViewable(CustomSkipList<CDRLog.LogKey, CDRLog> allLogs2) {
+		ArrayList ans = new ArrayList<>();
 		int a = 0;
-		for (CDRLog s : allLogs2) {
-			ans[a++] =s;
+		for (Object s : allLogs2) {
+			ans.add(s);
 		}
-		return ans;
+		ans.trimToSize();
+		return ans.toArray();
 	}
 
 	@Override
@@ -163,9 +202,60 @@ public class MainWindow extends BorderPane implements EventHandler<ActionEvent> 
 		if (source instanceof ComboBox) {
 			if (source.equals(CbUsers)) {
 				Object SelectedUser = CbUsers.getSelectionModel().getSelectedItem();
+				if (SelectedUser instanceof String) {
+					CbGroupingTypes.setDisable(true);
+					viewLog=allLogs;
+				} else if (SelectedUser instanceof Client) {
+					CbGroupingTypes.setDisable(false);
+					viewLog=allLogs.getSublist(new LogKey(null, ((Client) SelectedUser).Number, null)).toSkipList();
+				}
+				showList();
 			} else if (source.equals(CbGroupingTypes)) {
-
 			}
+		} else if (source instanceof Button) {
+			GetStats();
 		}
+	}
+
+	private void GetStats() {
+		// TODO Auto-generated method stub
+
+		CustomSkipList<CDRLog.LogKey, CDRLog> log=viewLog;
+		if (viewLog.equals(allLogs)) {
+			log = new CustomSkipList<>(new CDRLog.LogComparator() {
+				{
+					t = new KeyComparare[] { (x, y) -> x.getCalleeId().Region.compareTo(y.getCalleeId().Region),
+							(x, y) -> x.getCallStart().compareTo(y.getCallStart()) };
+				}
+			});
+			for (CDRLog cdrLog : allLogs) {
+				log.put(cdrLog.generateKey(), cdrLog);
+			}
+		}ArrayList<RegionStats> stats=new ArrayList<RegionStats>();
+		for (CustomSkipList<LogKey, CDRLog>.SkipListSubList sublist : log.GroupByPrimaryComparer()) {
+			
+			String region=sublist.GetRootValue().getCalleeId().Region;
+			int count=0;
+			Duration d=Duration.ZERO;
+			for (CDRLog v : sublist) {
+				count++;
+				d=d.plus(v.getCallDuration());
+			}
+			stats.add(new RegionStats(region, count, d));
+		}
+		showStats(stats);
+
+	}
+
+	private void showStats(ArrayList<RegionStats> stats) {
+		// TODO Auto-generated method stub
+		StatTable.formTable(RegionStats.TableHeader);
+		StatTable.getItems().clear();
+		StatTable.setItems(FXCollections.observableArrayList(stats));
+		
+		Logtable.toggleTalbe(false);
+		StatTable.toggleTalbe(true);
+		StatTable.refresh();
+		Logtable.refresh();
 	}
 }

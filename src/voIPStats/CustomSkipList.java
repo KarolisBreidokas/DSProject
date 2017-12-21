@@ -1,7 +1,11 @@
 package voIPStats;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
+
+import voIPStats.CDRLog.KeyComparare;
+import voIPStats.CDRLog.LogKey;
 
 public class CustomSkipList<K, V> implements Iterable<V> {
 
@@ -16,9 +20,11 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 	public boolean isEmpty() {
 		return size == 0;
 	}
+
 	public int getSize() {
 		return size;
 	}
+
 	public CustomSkipList(MultiLevelComparator<K> cmpr) {
 		c = cmpr;
 		levelCount = c.comparasonCount();
@@ -76,8 +82,8 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 	}
 
 	public CustomSkipList<K, V> SelectBySpecificComparator(int ComparatorIndex, K selectKey) {
-		
-		return SelectBySpecificComparator(ComparatorIndex,selectKey,c);
+
+		return SelectBySpecificComparator(ComparatorIndex, selectKey, c);
 	}
 
 	public CustomSkipList<K, V> SelectBySpecificComparator(int ComparatorIndex, K selectKey,
@@ -122,45 +128,104 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 		return builder.toString();
 	}
 
+	public SkipListSubList toSublist() {
+		return new SkipListSubList(start, null);
+	}
+
+	public SkipListSubList getSublist(K key) {
+		node<K, V> toCheck = null;
+		node<K, V> n = start;
+		for (; n != toCheck; n = n.next[levelCount - 1]) {
+			if (c.compareBykey(0, n.key, key) == 0) {
+				return new SkipListSubList(n);
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public Iterator<V> iterator() {
 		return new iterator();
 	}
+
 	public ArrayList<SkipListSubList> GroupByPrimaryComparer() {
-		ArrayList<SkipListSubList> t=new ArrayList<SkipListSubList>();
-		int n=0;
-		for(node<K, V> d=start;d!=null;d=d.next[d.next.length-1]) {
+		ArrayList<SkipListSubList> t = new ArrayList<SkipListSubList>();
+		int n = 0;
+		for (node<K, V> d = start; d != null; d = d.next[d.next.length - 1]) {
 			t.add(new SkipListSubList(d));
 		}
 		t.trimToSize();
 		return t;
 	}
 
-	public class SkipListSubList implements Iterable<V>{
+	public class SkipListSubList implements Iterable<V> {
 
-		private node<K,V> root;
-		
+		private node<K, V> root;
+		private node<K, V> end;
+		boolean full;
+
 		public V GetRootValue() {
 			return root.value;
 		}
-		
+
 		@Override
 		public Iterator<V> iterator() {
-			return new iterator(root, root.next[root.next.length-1]);
+			return new iterator(root, end);
 		}
-		private SkipListSubList(node<K,V> root) {
-			this.root=root;
+
+		private SkipListSubList(node<K, V> root) {
+			this.root = root;
+			this.end = root.next[root.next.length - 1];
+			full = false;
 		}
+
+		private SkipListSubList(node<K, V> root, node<K, V> end) {
+			this.root = root;
+			this.end = end;
+			full = true;
+		}
+
+		public CustomSkipList<K, V> toSkipList() {
+			if (!full) {
+				CustomSkipList<K, V> ans = new CustomSkipList<K, V>(new MultiLevelComparator<K>() {
+					@Override
+					public int comparasonCount() {
+						return c.comparasonCount() - 1;
+					}
+
+					@Override
+					public int compareBykey(int index, K obj1, K obj2) {
+						return c.compareBykey(index + 1, obj1, obj2);
+					}
+				});
+				ans.start = new node<K, V>(root.key, root.value, root.next.length - 1);
+				node<K, V> u = new node<K, V>(null, null, levelCount - 1);
+				ans.size++;
+				u.updateNext(ans.start, ans.start.next.length);
+				for (node<K, V> n = root.next[0]; n != end; n = n.next[0]) {
+					node<K, V> d = new node<K, V>(n.key, n.value, n.next.length);
+					for (int a = 0; a < n.next.length; a++) {
+						u.next[a].next[a] = d;
+						u.next[a] = d;
+						ans.size++;
+					}
+				}
+				return ans;
+			} else {
+				return CustomSkipList.this;
+			}
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder builder = new StringBuilder();
-			for (node<K, V> n = root; n != root.next[root.next.length-1]; n = n.next[0]) {
+			for (node<K, V> n = root; n != root.next[root.next.length - 1]; n = n.next[0]) {
 				builder.append(n.toString() + "\r\n");
 			}
 			return builder.toString();
 		}
 	}
-	
+
 	protected class node<K, V> {
 		K key;
 		V value;
@@ -187,14 +252,15 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 	private class iterator implements Iterator<V> {
 
 		node<K, V> D;
-		node<K,V> end;
+		node<K, V> end;
 
 		public iterator() {
 			D = start;
 		}
-		public iterator(node<K,V> start,node<K,V> end) {
-			this.D=start;
-			this.end=end;
+
+		public iterator(node<K, V> start, node<K, V> end) {
+			this.D = start;
+			this.end = end;
 		}
 
 		@Override
