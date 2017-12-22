@@ -100,23 +100,66 @@ public class CustomSkipList<K, V> implements Iterable<V> {
 	}
 
 	public V get(K key) {
-		int level = 0;
 		node<K, V> toCheck = null;
-		node<K, V> n = start;
-		for (; n != toCheck && levelCount > level;) {
-			int cmp = c.compareBykey(level, n.key, key);
+		for (node<K, V> n = start; n != toCheck;n=n.next[levelCount-1]) {
+			int cmp = c.compareBykey(0, n.key, key);
 			if (cmp == 0) {
-				level++;
-				toCheck = n.next[levelCount - level];
-			}
-			if (cmp < 0) {
-				n = n.next[levelCount - level - 1];
+				if(0<levelCount-1) {
+					V ans=getRecursvie(key, n, 1);
+					if(ans==null) {
+						if(c.compare(key, start.key)==0)
+							return start.value;
+						return null;
+					}else {
+						return ans;
+					}
+				}else {
+					if(c.compare(key, n.key)==0) {
+						return n.value;
+					}else {
+						return null;
+					}
+					
+				}
 			}
 			if (cmp > 0) {
-				return n.value;
+				return null;
 			}
 		}
-		return n.value;
+		return null;
+	}
+	
+	private V getRecursvie(K key,node<K, V> start,int level) {
+		for (node<K, V> n=start; n != start.next[levelCount-level];n=n.next[levelCount-level-1]) {
+			int cmp = c.compareBykey(level, n.key, key);
+			if (cmp == 0) {
+				if(level<levelCount-1) {
+					V ans=getRecursvie(key, n, level+1);
+					if(ans==null) {
+						if(c.compare(key, start.key)==0)
+							return start.value;
+						return null;
+					}else {
+						return ans;
+					}
+				}else {
+					if(c.compare(key, n.key)==0) {
+						return n.value;
+					}else {
+						return null;
+					}
+					
+				}
+			}
+			if (cmp > 0) {
+				if(c.compare(key, start.key)==0)
+					return start.value;
+				return null;
+			}
+		}
+		if(c.compare(key, start.key)==0)
+			return start.value;
+		return null;
 	}
 
 	@Override
